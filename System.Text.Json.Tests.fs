@@ -15,14 +15,23 @@ let toJsonLiteralString (input : char[]) =
     let _ = sb.Append("\"")
     sb.ToString()
 
-[<Property(Replay = "(1909695862,296706715)")>]
-let ``Parsing strings: System.Text.Json`` (input : char[]) =
-    let expected = new string(input)
-    let actual = JsonDocument.Parse (toJsonLiteralString input)
-    Assert.Equal(expected, actual.RootElement.GetString())
-    
+// Passes all runs
 [<Property>]
 let ``Parsing strings: Newtonsoft.Json`` (input : char[]) =
     let expected = new string(input)
     let actual = Newtonsoft.Json.JsonConvert.DeserializeObject<string> (toJsonLiteralString input)
     Assert.Equal(expected, actual)
+
+// fails with 
+// Falsifiable, after 5 tests (5 shrinks) (StdGen (1909695862,296706715)):
+// Original:
+// [| '\024'; '"'; 'g'; 'z'; '>'; ','|]
+// Shrunk:
+// [|'\024'|]
+// 
+// ---- System.Text.Json.JsonReaderException : '0x18' is invalid within a JSON string. The string should be correctly escaped. LineNumber: 0 | BytePositionInLine: 1.
+[<Property(Replay = "(1909695862,296706715)")>]
+let ``Parsing strings: System.Text.Json`` (input : char[]) =
+    let expected = new string(input)
+    let actual = JsonDocument.Parse (toJsonLiteralString input)
+    Assert.Equal(expected, actual.RootElement.GetString())
